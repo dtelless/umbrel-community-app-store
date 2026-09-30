@@ -1,0 +1,11 @@
+# Exemplo de arquivo WireGuard da ProtonVPN (copie o seu arquivo baixado para cá):
+#
+# [Interface]
+# PrivateKey = XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX=
+# Address = 10.2.0.2/32
+# DNS = 10.2.0.1
+#
+# [Peer]
+# PublicKey = YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY=
+# AllowedIPs = 0.0.0.0/0
+# Endpoint = 149.102.251.97:51820

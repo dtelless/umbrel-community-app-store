@@ -1,0 +1,58 @@
+version: "3.7"
+
+services:
+  app_proxy:
+    container_name: qbittorrent-vpn_app_proxy_1
+    environment:
+      APP_HOST: qbittorrent-vpn_vpn_1
+      APP_PORT: 8080
+      PROXY_AUTH_ADD: "false"
+
+  vpn:
+    container_name: qbittorrent-vpn_vpn_1
+    image: qmcgaw/gluetun:latest
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    environment:
+      - VPN_SERVICE_PROVIDER=custom
+      - VPN_TYPE=wireguard
+      - VPN_PORT_FORWARDING=on
+      - VPN_PORT_FORWARDING_PROVIDER=protonvpn
+      - FIREWALL_OUTBOUND_SUBNETS=192.168.11.0/24,10.21.0.0/16
+      - VPN_PORT_FORWARDING_UP_COMMAND=/bin/sh -c 'sleep 5; wget -O- -q --post-data "json={\"listen_port\":{{PORT}}}" http://127.0.0.1:8080/api/v2/app/setPreferences'
+    volumes:
+      - ${APP_DATA_DIR}/data/wireguard/wg0.conf:/gluetun/wireguard/wg0.conf:ro
+    restart: on-failure
+
+  server:
+    container_name: qbittorrent-vpn_server_1
+    image: lscr.io/linuxserver/qbittorrent:latest
+    network_mode: "service:vpn"
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Sao_Paulo
+      - WEBUI_PORT=8080
+    volumes:
+      - ${APP_DATA_DIR}/data/config:/config
+      - ${UMBREL_ROOT}/home/Downloads:/downloads
+    restart: on-failure
+    depends_on:
+      - vpn
+
+  widget-server:
+    container_name: qbittorrent-vpn_widget-server_1
+    image: python:3-alpine
+    network_mode: "service:vpn"
+    volumes:
+      - ${APP_DATA_DIR}/widget_server.py:/app/widget_server.py:ro
+    environment:
+      - QB_HOST=127.0.0.1:8080
+      - QB_USER=admin
+      - QB_PASS=MsIFDjK6U
+    command: python3 /app/widget_server.py
+    restart: on-failure
+    depends_on:
+      - vpn

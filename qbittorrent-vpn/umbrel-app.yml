@@ -1,0 +1,64 @@
+manifestVersion: 1.1
+id: qbittorrent-vpn
+category: networking
+name: "qBittorrent (VPN)"
+version: "5.2.4"
+tagline: "qBittorrent roteado 100% via ProtonVPN WireGuard com Port Forwarding"
+description: >-
+  qBittorrent completo executando dentro de um túnel seguro WireGuard com a ProtonVPN via Gluetun.
+  
+  Possui Kill Switch ativado no kernel para evitar qualquer vazamento do seu IP residencial e suporte nativo a Port Forwarding dinâmico via NAT-PMP.
+  
+  Para configurar, basta copiar o seu arquivo .conf baixado da ProtonVPN diretamente para a pasta do aplicativo (umbrel/app-data/qbittorrent-vpn/ ou data/wireguard/) com qualquer nome (ex: torresmo-BR-26.conf).
+developer: Daniel Telles
+website: https://qbittorrent.org/
+dependencies: []
+repo: https://github.com/dtelless/umbrel-community-app-store
+support: https://github.com/dtelless/umbrel-community-app-store/issues
+port: 8094
+icon: "https://getumbrel.github.io/umbrel-apps-gallery/qbittorrent/icon.svg"
+gallery:
+  - "https://getumbrel.github.io/umbrel-apps-gallery/qbittorrent/1.jpg"
+  - "https://getumbrel.github.io/umbrel-apps-gallery/qbittorrent/2.jpg"
+  - "https://getumbrel.github.io/umbrel-apps-gallery/qbittorrent/3.jpg"
+path: ""
+defaultUsername: "admin"
+defaultPassword: ""
+torOnly: false
+permissions:
+  - STORAGE_DOWNLOADS
+widgets:
+  - id: "status"
+    type: "four-stats"
+    refresh: "5s"
+    endpoint: "vpn:80/widgets/status"
+    link: ""
+    example:
+      type: "four-stats"
+      link: ""
+      items:
+        - title: "VPN Proton"
+          text: "149.102.251.103"
+          subtext: "WireGuard Ativo"
+        - title: "Porta P2P"
+          text: "34104"
+          subtext: "Aberta (NAT-PMP)"
+        - title: "Velocidade"
+          text: "↓ 2.4 MB/s"
+          subtext: "↑ 850 KB/s"
+        - title: "Torrents"
+          text: "51 Total"
+          subtext: "51 Seeding"
+  - id: "torrent-list"
+    type: "list"
+    refresh: "3s"
+    endpoint: "vpn:80/widgets/torrent-list"
+    link: ""
+    example:
+      type: "list"
+      link: ""
+      items:
+        - text: "VPN: 149.102.251.103 (Porta 34104)"
+          subtext: "ProtonVPN • ↓ 2.4 MB/s • ↑ 850 KB/s"
+        - text: "100% • Exemplo.Filme.2026.1080p.mkv"
+          subtext: "Seeding • ↑ 850 KB/s"

@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+APP_DIR="${APP_DATA_DIR:-$(readlink -f "$(dirname "${BASH_SOURCE[0]}")/..")}"
+DATA_DIR="${APP_DIR}/data"
+WG_DIR="${DATA_DIR}/wireguard"
+CONFIG_DIR="${DATA_DIR}/config/qBittorrent"
+
+mkdir -p "${WG_DIR}" "${CONFIG_DIR}"
+
+# Ensure widget_server.py is copied to APP_DIR if missing
+if [ -f "$(dirname "${BASH_SOURCE[0]}")/../widget_server.py" ] && [ ! -f "${APP_DIR}/widget_server.py" ]; then
+    cp "$(dirname "${BASH_SOURCE[0]}")/../widget_server.py" "${APP_DIR}/widget_server.py"
+fi
+
+# Detect any .conf file in WG_DIR, DATA_DIR, or APP_DIR (excluding wg0.conf itself)
+found_conf=$(ls -t "${WG_DIR}"/*.conf "${DATA_DIR}"/*.conf "${APP_DIR}"/*.conf 2>/dev/null | grep -v 'wg0.conf' | head -n 1 || true)
+if [ -n "${found_conf}" ]; then
+    echo "Configuração VPN detectada: ${found_conf} -> sincronizando para ${WG_DIR}/wg0.conf"
+    cp -f "${found_conf}" "${WG_DIR}/wg0.conf"
+    chmod 600 "${WG_DIR}/wg0.conf"
+fi
+
+# Ensure wg0.conf exists as a regular file before docker compose mounts it
+if [ ! -f "${WG_DIR}/wg0.conf" ]; then
+    touch "${WG_DIR}/wg0.conf"
+fi
+
+# Pre-configure qBittorrent on first run (bypass localhost auth, set paths, disable queue)
+if [ ! -f "${CONFIG_DIR}/qBittorrent.conf" ]; then
+    cat << 'EOF' > "${CONFIG_DIR}/qBittorrent.conf"
+[BitTorrent]
+Session\DefaultSavePath=/downloads/complete
+Session\QueueingSystemEnabled=false
+Session\TempPath=/downloads/incomplete
+Session\TempPathEnabled=true
+
+[Legal]
+NoticeApproved=true
+
+[Preferences]
+Downloads\SavePath=/downloads/complete
+Downloads\TempPath=/downloads/incomplete
+Downloads\TempPathEnabled=true
+WebUI\AuthSubnetWhitelist=127.0.0.1/32, 192.168.11.0/24, 10.21.0.0/16
+WebUI\AuthSubnetWhitelistEnabled=true
+WebUI\LocalHostAuth=false
+WebUI\Port=8080
+WebUI\UseUPnP=false
+EOF
+fi
