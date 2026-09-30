@@ -26,7 +26,7 @@ if [ ! -f "${WG_DIR}/wg0.conf" ]; then
     touch "${WG_DIR}/wg0.conf"
 fi
 
-# Pre-configure qBittorrent on first run (bypass localhost auth, set paths, disable queue)
+# Pre-configure qBittorrent on first run (bypass localhost auth, set paths, disable queue, disable host validation)
 if [ ! -f "${CONFIG_DIR}/qBittorrent.conf" ]; then
     cat << 'EOF' > "${CONFIG_DIR}/qBittorrent.conf"
 [BitTorrent]
@@ -47,5 +47,17 @@ WebUI\AuthSubnetWhitelistEnabled=true
 WebUI\LocalHostAuth=false
 WebUI\Port=8080
 WebUI\UseUPnP=false
+WebUI\HostHeaderValidation=false
+WebUI\ReverseProxySupportEnabled=true
+WebUI\TrustedReverseProxiesList=10.21.0.0/16, 127.0.0.1/32
+WebUI\CSRFProtection=false
+WebUI\ClickjackingProtection=false
 EOF
+else
+    # Ensure HostHeaderValidation is disabled even on existing config
+    if grep -q '^WebUI\\HostHeaderValidation=' "${CONFIG_DIR}/qBittorrent.conf"; then
+        sed -i 's/^WebUI\\HostHeaderValidation=.*/WebUI\\HostHeaderValidation=false/' "${CONFIG_DIR}/qBittorrent.conf"
+    else
+        sed -i '/^\[Preferences\]/a WebUI\\HostHeaderValidation=false' "${CONFIG_DIR}/qBittorrent.conf"
+    fi
 fi
