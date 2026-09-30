@@ -27,6 +27,13 @@ defaultPassword: ""
 torOnly: false
 permissions:
   - STORAGE_DOWNLOADS
+folderAccess:
+  - id: downloads
+    name: Downloads
+    note: Pasta onde os torrents e arquivos baixados ficam armazenados (selecione o seu HD externo Untitled).
+    mounts:
+      - service: server
+        targetPath: /downloads
 widgets:
   - id: "status"
     type: "four-stats"
