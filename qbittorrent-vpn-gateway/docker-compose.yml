@@ -1,0 +1,51 @@
+version: "3.7"
+
+services:
+  app_proxy:
+    container_name: qbittorrent-vpn-gateway_app_proxy_1
+    environment:
+      APP_HOST: qbittorrent-vpn-gateway_vpn_1
+      APP_PORT: 8099
+      PROXY_AUTH_ADD: "false"
+
+  # Túnel WireGuard da ProtonVPN. Outros apps entram na rede deste contêiner
+  # com `network_mode: container:qbittorrent-vpn-gateway_vpn_1` (veja vpn-attach.sh).
+  vpn:
+    container_name: qbittorrent-vpn-gateway_vpn_1
+    image: qmcgaw/gluetun:v3.41.3
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    environment:
+      - VPN_SERVICE_PROVIDER=custom
+      - VPN_TYPE=wireguard
+      # Rede local e rede interna do Umbrel continuam acessíveis fora do túnel.
+      - FIREWALL_OUTBOUND_SUBNETS=192.168.11.0/24,10.21.0.0/16
+      - TZ=America/Sao_Paulo
+    volumes:
+      - ${APP_DATA_DIR}/data/wireguard/wg0.conf:/gluetun/wireguard/wg0.conf:ro
+    restart: unless-stopped
+
+  # Guardião: reinicia os apps anexados quando a VPN reinicia e para qualquer
+  # app da lista que estiver rodando fora da VPN (kill switch). Também serve
+  # a página de status na porta 8099.
+  guardian:
+    container_name: qbittorrent-vpn-gateway_guardian_1
+    image: python:3.13-alpine
+    network_mode: "service:vpn"
+    environment:
+      - GATEWAY=qbittorrent-vpn-gateway_vpn_1
+      - SELF=qbittorrent-vpn-gateway_guardian_1
+      - TARGETS=paperclip_server_1,hermes-agent_web_1
+      - INTERVAL=30
+      - PORT=8099
+      - KILL_SWITCH=1
+      - TZ=America/Sao_Paulo
+    volumes:
+      - ${APP_DATA_DIR}/guardian.py:/app/guardian.py:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: python3 -u /app/guardian.py
+    restart: unless-stopped
+    depends_on:
+      - vpn

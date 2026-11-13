@@ -1,0 +1,34 @@
+manifestVersion: 1.1
+id: qbittorrent-vpn-gateway
+category: networking
+name: "VPN Gateway"
+version: "1.0.0"
+tagline: "Túnel ProtonVPN compartilhado para outros apps, com kill switch e auto-restart"
+description: >-
+  Um túnel WireGuard da ProtonVPN (via Gluetun) que outros apps do Umbrel podem usar como rede.
+
+  O guardião embutido reinicia sozinho os apps anexados quando a VPN reinicia e para qualquer
+  app da lista que estiver rodando fora da VPN (por exemplo, depois que uma atualização do
+  Umbrel desfaz a configuração), para que o seu IP residencial não vaze.
+
+  Configuração: copie o arquivo .conf da ProtonVPN (com NAT-PMP desligado) para
+  umbrel/app-data/qbittorrent-vpn-gateway/data/wireguard/ com qualquer nome e reinicie o app.
+
+  Para anexar um app: ~/umbrel/app-data/qbittorrent-vpn-gateway/vpn-attach.sh <id-do-app>
+  e reinicie o app pelo Umbrel.
+developer: Daniel Telles
+website: https://github.com/qdm12/gluetun
+dependencies: []
+repo: https://github.com/dtelless/umbrel-community-app-store
+support: https://github.com/dtelless/umbrel-community-app-store/issues
+port: 8097
+icon: "https://raw.githubusercontent.com/qdm12/gluetun/master/doc/logo_256.png"
+gallery: []
+path: ""
+defaultUsername: ""
+defaultPassword: ""
+torOnly: false
+releaseNotes: >-
+  Primeira versão.
+submitter: Daniel Telles
+submission: https://github.com/dtelless/umbrel-community-app-store

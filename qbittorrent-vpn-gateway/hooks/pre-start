@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+APP_DIR="${APP_DATA_DIR:-$(readlink -f "$(dirname "${BASH_SOURCE[0]}")/..")}"
+DATA_DIR="${APP_DIR}/data"
+WG_DIR="${DATA_DIR}/wireguard"
+
+mkdir -p "${WG_DIR}"
+
+# Usa o .conf mais recente encontrado (qualquer nome) como wg0.conf.
+found_conf=$(ls -t "${WG_DIR}"/*.conf "${DATA_DIR}"/*.conf "${APP_DIR}"/*.conf 2>/dev/null | grep -v '/wg0.conf$' | head -n 1 || true)
+if [ -n "${found_conf}" ]; then
+    echo "VPN Gateway: configuração detectada em ${found_conf} -> ${WG_DIR}/wg0.conf"
+    cp -f "${found_conf}" "${WG_DIR}/wg0.conf"
+fi
+
+# O Docker precisa de um arquivo (não diretório) para montar.
+if [ ! -f "${WG_DIR}/wg0.conf" ]; then
+    touch "${WG_DIR}/wg0.conf"
+fi
+chmod 600 "${WG_DIR}/wg0.conf"
+
+chmod +x "${APP_DIR}/vpn-attach.sh" 2>/dev/null || true
